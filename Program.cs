@@ -162,6 +162,10 @@ void ViewByCategory()
         Console.WriteLine($"{product.Name}, ${product.Price}, {product.DaysOnShelf} days on shelf");
     }
 }
+
+//NOTE: need to work on add, delete, update next. sorts by categories now. 
+
+
 /*
    products.Where(p => p.ProductTypeId == productTypes[catChoice - 1].Id).ToList();
 
