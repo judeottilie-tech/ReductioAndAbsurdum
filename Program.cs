@@ -1,4 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System.ComponentModel;
+
 List<ProductType> productTypes = new List<ProductType>()
 {
     new ProductType() { Id = 1, Name = "Apparel" },
@@ -57,13 +58,11 @@ List<Product> products = new List<Product>()
         ProductTypeId = 3,
         DateEntered = new DateTime(2026, 5, 1)
     },
-    
 };
 
 string greeting = @"Welcome to Reductio & Absurdum!
 Providing high-quality magical supplies to the wizarding community for nearly 1000 years at their shop on Calendula Road.";
 Console.WriteLine(greeting);
-
 
 string choice = null;
 while (choice != "0")
@@ -77,17 +76,7 @@ Menu:
 4. Delete a Product from the Inventory
 5. Update a Product's Details");
 
-/*
-0. Exit
-1. Apparel
-2. Potion
-3. Enchanted Item
-4. Wand
-
-
- */
-
-choice = Console.ReadLine().Trim();
+    choice = Console.ReadLine().Trim();
 
     if (choice == "0")
     {
@@ -97,13 +86,10 @@ choice = Console.ReadLine().Trim();
     {
         ListProducts();
     }
-   
     else if (choice == "2")
     {
         ViewByCategory();
     }
-
-     /*
     else if (choice == "3")
     {
         AddProduct();
@@ -116,36 +102,49 @@ choice = Console.ReadLine().Trim();
     {
         UpdateProduct();
     }
-    */
 }
 
 void ListProducts()
 {
-    Console.WriteLine($"Products:");
-
+    Console.WriteLine("Products:");
     for (int i = 0; i < products.Count; i++)
     {
-    Console.WriteLine($"{i + 1}. {products[i].Name}");
+        Console.WriteLine($"{i + 1}. {products[i].Name}");
     }
 }
 
 void ViewByCategory()
 {
-    Console.WriteLine($"Item Categories:");
-
+    Console.WriteLine("Item Categories:");
     for (int i = 0; i < productTypes.Count; i++)
     {
         Console.WriteLine($"{i + 1}. {productTypes[i].Name}");
-    };
+    }
 
     Console.WriteLine("Enter category number: ");
-    int response = int.Parse(Console.ReadLine().Trim());
+    int response = 0;
+    try
+    {
+        response = int.Parse(Console.ReadLine().Trim());
+    }
+    catch (FormatException)
+    {
+        Console.WriteLine("Please enter a number.");
+        return;
+    }
 
     while (response > productTypes.Count || response < 1)
     {
-    Console.WriteLine($"Choose a number between 1 and {productTypes.Count}!");
-    response = int.Parse(Console.ReadLine().Trim());
-    };
+        Console.WriteLine($"Choose a number between 1 and {productTypes.Count}!");
+        try
+        {
+            response = int.Parse(Console.ReadLine().Trim());
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Please enter a number.");
+        }
+    }
 
     List<Product> filtered = products.Where(product => product.ProductTypeId == productTypes[response - 1].Id).ToList();
 
@@ -162,6 +161,180 @@ void ViewByCategory()
         Console.WriteLine($"{product.Name}, ${product.Price}, {product.DaysOnShelf} days on shelf");
     }
 }
+
+void AddProduct()
+{
+    Console.WriteLine("Enter product name: ");
+    string name = Console.ReadLine().Trim();
+
+    decimal price = 0;
+    bool validPrice = false;
+    while (!validPrice)
+    {
+        Console.WriteLine("Enter price: ");
+        try
+        {
+            price = decimal.Parse(Console.ReadLine().Trim());
+            validPrice = true;
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Please enter a valid price.");
+        }
+    }
+
+    Console.WriteLine("Categories: ");
+    for (int i = 0; i < productTypes.Count; i++)
+    {
+        Console.WriteLine($"{i + 1}. {productTypes[i].Name}");
+    }
+
+    int response = 0;
+    Console.WriteLine("Enter category number: ");
+    try
+    {
+        response = int.Parse(Console.ReadLine().Trim());
+    }
+    catch (FormatException)
+    {
+        Console.WriteLine("Please enter a number.");
+        return;
+    }
+
+    while (response > productTypes.Count || response < 1)
+    {
+        Console.WriteLine($"Choose a number between 1 and {productTypes.Count}!");
+        try
+        {
+            response = int.Parse(Console.ReadLine().Trim());
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Please enter a number.");
+        }
+    }
+
+    products.Add(new Product()
+    {
+        Name = name,
+        Price = price,
+        Sold = false,
+        ProductTypeId = productTypes[response - 1].Id,
+        DateEntered = DateTime.Now
+    });
+
+    Console.WriteLine($"{name} added");
+}
+
+void DeleteProduct()
+{
+    ListProducts();
+    Console.WriteLine("Enter the number of the item you want to remove: ");
+
+    int removeItem = 0;
+    try
+    {
+        removeItem = int.Parse(Console.ReadLine().Trim());
+    }
+    catch (FormatException)
+    {
+        Console.WriteLine("Please enter a number.");
+        return;
+    }
+
+    try
+    {
+        Product removeProduct = products[removeItem - 1];
+        products.Remove(removeProduct);
+        Console.WriteLine($"{removeProduct.Name} has been removed.");
+    }
+    catch (ArgumentOutOfRangeException)
+    {
+        Console.WriteLine("Please choose an existing product number.");
+    }
+}
+
+void UpdateProduct()
+{
+    ListProducts();
+    Console.WriteLine("Enter the number of the product you want to update: ");
+
+    int updateItem = 0;
+    try
+    {
+        updateItem = int.Parse(Console.ReadLine().Trim());
+    }
+    catch (FormatException)
+    {
+        Console.WriteLine("Please enter a number.");
+        return;
+    }
+
+    Product toUpdate;
+    try
+    {
+        toUpdate = products[updateItem - 1];
+    }
+    catch (ArgumentOutOfRangeException)
+    {
+        Console.WriteLine("Please choose an existing product number.");
+        return;
+    }
+
+    Console.WriteLine(@$"Products current details:
+    Name: {toUpdate.Name}
+    Price: {toUpdate.Price}
+    Category: {toUpdate.ProductTypeId}");
+
+    Console.WriteLine($"Current name: {toUpdate.Name}. New name: ");
+    string newName = Console.ReadLine().Trim();
+    if (!string.IsNullOrEmpty(newName))
+    {
+        toUpdate.Name = newName;
+    }
+
+    Console.WriteLine($"Current price: {toUpdate.Price}. New price: ");
+    string newPrice = Console.ReadLine().Trim();
+    if (!string.IsNullOrEmpty(newPrice))
+    {
+        try
+        {
+            toUpdate.Price = decimal.Parse(newPrice);
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Invalid price, keeping current price.");
+        }
+    }
+
+    for (int i = 0; i < productTypes.Count; i++)
+    {
+        Console.WriteLine($"{i + 1}. {productTypes[i].Name}");
+    }
+
+    Console.WriteLine($"Current category: {toUpdate.ProductTypeId}. Choose a new category number: ");
+    try
+    {
+        int newCategory = int.Parse(Console.ReadLine().Trim());
+        toUpdate.ProductTypeId = productTypes[newCategory - 1].Id;
+    }
+    catch (FormatException)
+    {
+        Console.WriteLine("Invalid number, keeping current category.");
+    }
+    catch (ArgumentOutOfRangeException)
+    {
+        Console.WriteLine("Please choose an existing category, keeping current category.");
+    }
+
+    Console.WriteLine(@$"The product's new details are:
+    Name: {toUpdate.Name}
+    Price: {toUpdate.Price}
+    Category: {toUpdate.ProductTypeId}
+    
+    Product updated!");
+}
+
 
 //NOTE: need to work on add, delete, update next. sorts by categories now. 
 
