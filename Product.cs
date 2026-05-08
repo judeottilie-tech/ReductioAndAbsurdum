@@ -20,13 +20,3 @@ public class Product
         }
     }
 }
-   // public DateTime DaysOnShelf { get; set; }
-
-    /* public int DaysOnShelf
-    {
-        get
-        {
-            return (DateTime.Now - DateEntered).Days;
-        }
-    }
-    */

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-List<ProductType> productTypes = new List<ProductType>()
+﻿List<ProductType> productTypes = new List<ProductType>()
 {
     new ProductType() { Id = 1, Name = "Apparel" },
     new ProductType() { Id = 2, Name = "Potions" },
@@ -121,44 +119,43 @@ void ViewByCategory()
         Console.WriteLine($"{i + 1}. {productTypes[i].Name}");
     }
 
-    Console.WriteLine("Enter category number: ");
-    int response = 0;
-    try
+    Product chosenType = null;
+    while (chosenType == null)
     {
-        response = int.Parse(Console.ReadLine().Trim());
-    }
-    catch (FormatException)
-    {
-        Console.WriteLine("Please enter a number.");
-        return;
-    }
-
-    while (response > productTypes.Count || response < 1)
-    {
-        Console.WriteLine($"Choose a number between 1 and {productTypes.Count}!");
+        Console.WriteLine("Enter category number: ");
         try
         {
-            response = int.Parse(Console.ReadLine().Trim());
+            int response = int.Parse(Console.ReadLine().Trim());
+            chosenType = new Product() { ProductTypeId = productTypes[response - 1].Id };
+
+            List<Product> filtered = products.Where(product => product.ProductTypeId == chosenType.ProductTypeId).ToList();
+
+            if (filtered.Count == 0)
+            {
+                Console.WriteLine("No products in this category.");
+                return;
+            }
+
+            ProductType selectedType = productTypes[response - 1];
+            Console.WriteLine($"{selectedType.Name}:");
+            foreach (Product product in filtered)
+            {
+                Console.WriteLine($"{product.Name}, ${product.Price}, {product.DaysOnShelf} days on shelf");
+            }
         }
         catch (FormatException)
         {
-            Console.WriteLine("Please enter a number.");
+            Console.WriteLine("Please type only integers!");
         }
-    }
-
-    List<Product> filtered = products.Where(product => product.ProductTypeId == productTypes[response - 1].Id).ToList();
-
-    if (filtered.Count == 0)
-    {
-        Console.WriteLine("No products in this category");
-        return;
-    }
-
-    ProductType selectedType = productTypes[response - 1];
-    Console.WriteLine($"{selectedType.Name}:");
-    foreach (Product product in filtered)
-    {
-        Console.WriteLine($"{product.Name}, ${product.Price}, {product.DaysOnShelf} days on shelf");
+        catch (ArgumentOutOfRangeException)
+        {
+            Console.WriteLine("Please choose an existing category only!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Console.WriteLine("Do better!");
+        }
     }
 }
 
@@ -167,20 +164,22 @@ void AddProduct()
     Console.WriteLine("Enter product name: ");
     string name = Console.ReadLine().Trim();
 
+    Console.WriteLine("Enter price: ");
     decimal price = 0;
-    bool validPrice = false;
-    while (!validPrice)
+    try
     {
-        Console.WriteLine("Enter price: ");
-        try
-        {
-            price = decimal.Parse(Console.ReadLine().Trim());
-            validPrice = true;
-        }
-        catch (FormatException)
-        {
-            Console.WriteLine("Please enter a valid price.");
-        }
+        price = decimal.Parse(Console.ReadLine().Trim());
+    }
+    catch (FormatException)
+    {
+        Console.WriteLine("Please type only numbers!");
+        return;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex);
+        Console.WriteLine("Do better!");
+        return;
     }
 
     Console.WriteLine("Categories: ");
@@ -189,99 +188,95 @@ void AddProduct()
         Console.WriteLine($"{i + 1}. {productTypes[i].Name}");
     }
 
-    int response = 0;
     Console.WriteLine("Enter category number: ");
     try
     {
-        response = int.Parse(Console.ReadLine().Trim());
+        int response = int.Parse(Console.ReadLine().Trim());
+        products.Add(new Product()
+        {
+            Name = name,
+            Price = price,
+            Sold = false,
+            ProductTypeId = productTypes[response - 1].Id,
+            DateEntered = DateTime.Now
+        });
+        Console.WriteLine($"{name} added!");
     }
     catch (FormatException)
     {
-        Console.WriteLine("Please enter a number.");
-        return;
+        Console.WriteLine("Please type only integers!");
     }
-
-    while (response > productTypes.Count || response < 1)
+    catch (ArgumentOutOfRangeException)
     {
-        Console.WriteLine($"Choose a number between 1 and {productTypes.Count}!");
-        try
-        {
-            response = int.Parse(Console.ReadLine().Trim());
-        }
-        catch (FormatException)
-        {
-            Console.WriteLine("Please enter a number.");
-        }
+        Console.WriteLine("Please choose an existing category only!");
     }
-
-    products.Add(new Product()
+    catch (Exception ex)
     {
-        Name = name,
-        Price = price,
-        Sold = false,
-        ProductTypeId = productTypes[response - 1].Id,
-        DateEntered = DateTime.Now
-    });
-
-    Console.WriteLine($"{name} added");
+        Console.WriteLine(ex);
+        Console.WriteLine("Do better!");
+    }
 }
 
 void DeleteProduct()
 {
     ListProducts();
-    Console.WriteLine("Enter the number of the item you want to remove: ");
-
-    int removeItem = 0;
-    try
+    Product chosenProduct = null;
+    while (chosenProduct == null)
     {
-        removeItem = int.Parse(Console.ReadLine().Trim());
-    }
-    catch (FormatException)
-    {
-        Console.WriteLine("Please enter a number.");
-        return;
-    }
-
-    try
-    {
-        Product removeProduct = products[removeItem - 1];
-        products.Remove(removeProduct);
-        Console.WriteLine($"{removeProduct.Name} has been removed.");
-    }
-    catch (ArgumentOutOfRangeException)
-    {
-        Console.WriteLine("Please choose an existing product number.");
+        Console.WriteLine("Which product do you want to remove? ");
+        try
+        {
+            int removeItem = int.Parse(Console.ReadLine().Trim());
+            Product removeProduct = products[removeItem - 1];
+            products.Remove(removeProduct);
+            Console.WriteLine($"{removeProduct.Name} has been removed.");
+            chosenProduct = removeProduct;
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Please only enter a number");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            Console.WriteLine("Please only choose an existing menu item");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Console.WriteLine("There was an error. Please try again.");
+        }
     }
 }
 
 void UpdateProduct()
 {
     ListProducts();
-    Console.WriteLine("Enter the number of the product you want to update: ");
 
-    int updateItem = 0;
-    try
+    Product toUpdate = null;
+    while (toUpdate == null)
     {
-        updateItem = int.Parse(Console.ReadLine().Trim());
-    }
-    catch (FormatException)
-    {
-        Console.WriteLine("Please enter a number.");
-        return;
+        Console.WriteLine("Enter the number of the product you want to update: ");
+        try
+        {
+            int response = int.Parse(Console.ReadLine().Trim());
+            toUpdate = products[response - 1];
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Please type only integers!");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            Console.WriteLine("Please choose an existing item only!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Console.WriteLine("Do better!");
+        }
     }
 
-    Product toUpdate;
-    try
-    {
-        toUpdate = products[updateItem - 1];
-    }
-    catch (ArgumentOutOfRangeException)
-    {
-        Console.WriteLine("Please choose an existing product number.");
-        return;
-    }
-
-    Console.WriteLine(@$"Products current details:
+    Console.WriteLine(@$"Current details:
     Name: {toUpdate.Name}
     Price: {toUpdate.Price}
     Category: {toUpdate.ProductTypeId}");
@@ -303,10 +298,16 @@ void UpdateProduct()
         }
         catch (FormatException)
         {
-            Console.WriteLine("Invalid price, keeping current price.");
+            Console.WriteLine("Please type only numbers! Keeping current price.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Console.WriteLine("Do better!");
         }
     }
 
+    Console.WriteLine("Categories:");
     for (int i = 0; i < productTypes.Count; i++)
     {
         Console.WriteLine($"{i + 1}. {productTypes[i].Name}");
@@ -320,24 +321,25 @@ void UpdateProduct()
     }
     catch (FormatException)
     {
-        Console.WriteLine("Invalid number, keeping current category.");
+        Console.WriteLine("Please type only integers! Keeping current category.");
     }
     catch (ArgumentOutOfRangeException)
     {
-        Console.WriteLine("Please choose an existing category, keeping current category.");
+        Console.WriteLine("Please choose an existing category only! Keeping current category.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex);
+        Console.WriteLine("Do better!");
     }
 
-    Console.WriteLine(@$"The product's new details are:
+    Console.WriteLine(@$"Updated details:
     Name: {toUpdate.Name}
     Price: {toUpdate.Price}
     Category: {toUpdate.ProductTypeId}
     
     Product updated!");
 }
-
-
-//NOTE: need to work on add, delete, update next. sorts by categories now. 
-
 
 /*
    products.Where(p => p.ProductTypeId == productTypes[catChoice - 1].Id).ToList();
